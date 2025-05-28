@@ -14,7 +14,7 @@ Results will be presented like this but without interaction (Figure 3 in our [la
 
 </div>
 
-If you are intersted to learn further cell-cell interaction from the data, we plan to release the code after our work published. 
+If you are interested in further exploring cell-cell interactions from the data, we plan to release the code following the publication of our work.
 
 ## License
 DeepRUOTv2 is licensed under the MIT License, and the code from MIOflow used in this project is subject to the Yale Non-Commercial License.
