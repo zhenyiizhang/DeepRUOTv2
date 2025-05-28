@@ -5,7 +5,7 @@
 This is the DeepRUOTv2 version of our previously published work DeepRUOT. We have improved the implementation of the original DeepRUOT version, offering a more user-friendly interface and establishing default parameters. We have computed results on more datasets presented in our latest work (https://arxiv.org/abs/2505.11197): Mouse Blood Hematopoiesis (50D), Embryoid Body (50D), Pancreatic $\beta$ -cell differentiation (30D) and  A549 EMT (10D).
 
 
-Results will be presented like this (Figure 3 in our [latest work](https://arxiv.org/abs/2505.11197)):
+Results will be presented like this but without interaction (Figure 3 in our [latest work](https://arxiv.org/abs/2505.11197)):
 <br />
 <div align="left">
   <a href="https://github.com/zhenyiizhang/DeepRUOTv2/">
@@ -13,6 +13,8 @@ Results will be presented like this (Figure 3 in our [latest work](https://arxiv
   </a>
 
 </div>
+
+If you are intersted to learn further cell-cell interaction from the data, we plan to release the code after our work published. 
 
 ## License
 DeepRUOTv2 is licensed under the MIT License, and the code from MIOflow used in this project is subject to the Yale Non-Commercial License.
