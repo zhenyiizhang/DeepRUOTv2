@@ -1,5 +1,5 @@
 # Runtime parameters
-use_pinn: false # whether to use PINN to refine the score network, if set to false, keep the score network from the pretraining phase unchanged
+use_pinn: true # whether to use PINN to refine the score network, if set to false, keep the score network from the pretraining phase unchanged
 sample_with_replacement: false # Whether or not to sample with replacement.
 device: 'cuda' # device to run the model
 sample_size: 1024 # number of samples to use for training

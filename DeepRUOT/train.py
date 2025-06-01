@@ -624,6 +624,7 @@ def train_all(
                 size1=(df[df['samples']==t1].values.shape[0],)
                 data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                 time = torch.Tensor([t0, t1])
+                time.to(device)
 
                 # Add noise if specified
                 if add_noise:
@@ -718,6 +719,7 @@ def train_all(
                     P1=0
                     nnum=data_t1.shape[0]
                     ttime=time[1]
+                    ttime = ttime.to(device)
                     vv, gg, _, _ = model(ttime, data_t1)
                     ttime=ttime.expand(nnum,1)
                     ss=sf2m_score_model(ttime, data_t1)

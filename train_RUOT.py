@@ -297,6 +297,16 @@ class TrainingPipeline:
         torch.save(self.f_net.state_dict(), os.path.join(self.exp_dir, 'model_final'))
         
         return l_loss, b_loss, g_loss
+    
+    def clean_up(self):
+        """Clean up"""
+        os.remove(os.path.join(self.exp_dir, 'best_model'))
+        os.remove(os.path.join(self.exp_dir, 'model_result'))
+        if self.config['use_pinn']:
+            os.remove(os.path.join(self.exp_dir, 'score_model'))
+            os.remove(os.path.join(self.exp_dir, 'score_result'))
+        else:
+            os.rename(os.path.join(self.exp_dir, 'score_model'), os.path.join(self.exp_dir, 'score_model_final'))
 
     def train(self):
         """Run complete training pipeline"""
@@ -308,8 +318,12 @@ class TrainingPipeline:
         
         # Phase 3: Final training
         final_losses = self.final_training()
+
+        # Clean up
+        self.clean_up()
         
         return pretrain_losses, final_losses
+    
 
 def main():
     parser = argparse.ArgumentParser(description='Train DeepRUOT model')
