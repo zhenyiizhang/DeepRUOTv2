@@ -245,7 +245,7 @@ class TrainingPipeline:
         
         dim = self.config['data']['dim']
         datatime0 = torch.zeros(self.df[self.df['samples']==0].x1.shape[0], dim)
-        datatime0 = torch.tensor(self.df[self.df['samples']==0].iloc[:,1:dim+1].values).to(self.device)
+        datatime0 = torch.tensor(self.df[self.df['samples']==0].iloc[:,1:dim+1].values, dtype=torch.float32).to(self.device)
         
         for param in self.f_net.parameters():
             param.requires_grad = True
