@@ -96,7 +96,8 @@ class TrainingPipeline:
             sample_sizes = self.df.groupby('samples').size()
         
         ref0 = sample_sizes / sample_sizes.iloc[0]
-        self.relative_mass = torch.tensor(ref0.values)
+        self.relative_mass = torch.tensor(ref0.values, dtype=torch.float32)
+        self.relative_mass = self.relative_mass.to(self.device)
         
         self.initial_size = self.df[self.df['samples']==0].x1.shape[0]
 
