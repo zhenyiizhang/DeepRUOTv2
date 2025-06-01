@@ -202,7 +202,7 @@ class TrainingPipeline:
         trajectory = generate_state_trajectory(X, n_times, self.df[self.df['samples']==0].x1.shape[0], self.f_net, time, self.device)
         
         # Training loop
-        for i in tqdm(range(self.config['score_train']['epochs'])):
+        for i in tqdm(range(self.config['score_train']['epochs']), desc='Training score model'):
             sf2m_optimizer.zero_grad()
             t, xt, ut, eps = get_batch_size(SF2M, X, trajectory, batch_size, n_times, return_noise=True)
             t = torch.unsqueeze(t, 1)

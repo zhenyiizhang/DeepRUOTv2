@@ -4,8 +4,8 @@ import os, sys, json, math, itertools
 import pandas as pd, numpy as np
 import warnings
 
-# from tqdm import tqdm
-from tqdm.notebook import tqdm
+from tqdm import tqdm
+#from tqdm.notebook import tqdm
 
 import torch
 
@@ -90,7 +90,7 @@ def train_un1(
     # Initialize the minimum Otloss with a very high value
     min_ot_loss = float('inf')
 
-    for batch in tqdm(range(n_batches)):
+    for batch in tqdm(range(n_batches), desc='Training batches', leave=True):
         # apply local loss
         if local_loss and not global_loss:
             i_mass=1
@@ -180,7 +180,7 @@ def train_un1(
                 min_ot_loss = current_ot_loss
                 # Save the model's state_dict
                 torch.save(model.state_dict(), best_model_path)
-                print(f'New minimum otloss found: {min_ot_loss}. Model saved.')
+                logger.info(f'New minimum otloss found: {min_ot_loss}. Model saved.')
         
         
             # convert the local losses into a tensor of len(steps)
@@ -279,9 +279,10 @@ def train_un1_reduce(
     # Initialize the minimum Otloss with a very high value
     min_ot_loss = float('inf')
 
+    # Create progress bar with OT loss display
+    pbar = tqdm(range(n_batches), desc='Pretraining')
 
-    for batch in tqdm(range(n_batches)):
-
+    for i in pbar:
         loss_batch = 0
         # apply local loss
         if local_loss and not global_loss:
@@ -350,12 +351,9 @@ def train_un1_reduce(
                 lnw0=lnw_t_last.detach()
                 data_t0=x_t[-1].detach()
             
-                print('Otloss')
-                print(loss_ot)
-                print('mass loss')
-                print(mass_loss)
-                print('energy loss')
-                print(m_t_last.mean())
+                logger.info(f'Otloss {loss_ot.item()}')
+                logger.info(f'mass loss {mass_loss.item()}')
+                logger.info(f'energy loss {m_t_last.mean().item()}')
                 loss=(lambda_ot*loss_ot+lambda_mass*mass_loss + lambda_energy * m_t_last.mean())
                 
 
@@ -363,8 +361,8 @@ def train_un1_reduce(
                     density_loss = density_fn(data_t0, data_t1, top_k=top_k)
                     density_loss = density_loss.to(loss.device)
                     loss += lambda_density * density_loss
-                    print('density loss')
-                    print(density_loss)
+                    logger.info('density loss')
+                    logger.info(density_loss)
 
                 loss_batch += loss
                 # apply local loss as we calculate it
@@ -378,12 +376,15 @@ def train_un1_reduce(
                # Detach the loss from the computation graph and get its scalar value
             current_ot_loss = loss_ot.item()
             
+            # Update progress bar with current OT loss
+            pbar.set_postfix({'OT Loss': f'{current_ot_loss:.6f}'})
+            
             # Check if the current Otloss is the new minimum
             if current_ot_loss < min_ot_loss:
                 min_ot_loss = current_ot_loss
                 # Save the model's state_dict
                 torch.save(model.state_dict(), best_model_path)
-                print(f'New minimum otloss found: {min_ot_loss}. Model saved.')
+                logger.info(f'New minimum otloss found: {min_ot_loss}. Model saved.')
         
 
             if reverse:
@@ -449,20 +450,17 @@ def train_un1_reduce(
                     lnw0_reverse=lnw_t_last_reverse.detach()
                     data_t0_reverse=x_t_reverse[-1].detach()
                 
-                    print('Otloss')
-                    print(loss_ot_reverse)
-                    print('mass loss')
-                    print(mass_loss)
-                    print('energy loss')
-                    print(m_t_last_reverse.mean())
+                    logger.info(f'Otloss: {loss_ot_reverse}')
+                    logger.info(f'mass loss: {mass_loss}')
+                    logger.info(f'energy loss: {m_t_last_reverse.mean()}')
                     loss_reverse=(lambda_ot*loss_ot_reverse+lambda_mass*mass_loss - lambda_energy * m_t_last_reverse.mean())
 
                     if use_density_loss:                
                         density_loss = density_fn(data_t0_reverse, data_t1_reverse, top_k=top_k)
                         density_loss = density_loss.to(loss_reverse.device)
                         loss_reverse += lambda_density * density_loss
-                        print('density loss')
-                        print(density_loss)
+                        logger.info('density loss')
+                        logger.info(density_loss)
 
                     loss_batch += loss_reverse
                     if apply_losses_in_time and local_loss:
@@ -581,12 +579,13 @@ def train_all(
     
     model.train()
     step=0
-    print('begin local loss')
+    logger.info('begin local loss')
 
     # Track best OT loss for model checkpointing
     min_ot_loss = float('inf')
 
-    for batch in tqdm(range(n_batches)):
+    pbar = tqdm(range(n_batches), desc='Training')
+    for batch in pbar:
 
         # Local loss computation
         if local_loss and not global_loss:
@@ -698,22 +697,21 @@ def train_all(
                 data_t0=x_t[-1].clone().detach()
             
                 # Print loss components
-                print(f'Otloss {loss_ot.item()}')
-                print(f'mass loss {mass_loss.item()}')
-                print(f'energy loss {m_t_last.mean().item()}')
+                logger.info(f'Otloss {loss_ot.item()}')
+                logger.info(f'mass loss {mass_loss.item()}')
+                logger.info(f'energy loss {m_t_last.mean().item()}')
                 loss_ot=loss_ot.to(device)
-                
                 # Combine losses
                 loss=(lambda_ot*loss_ot+lambda_mass*mass_loss+m_t_last.mean()* lambda_energy)
-                print(f"total loss {loss}")
+                logger.info(f"total loss {loss}")
 
                 # Add density loss if specified
                 if use_density_loss:                
                     density_loss = density_fn(data_t0, data_t1, top_k=top_k)
                     density_loss = density_loss.to(loss.device)
                     loss += lambda_density * density_loss
-                    print('density loss')
-                    print(density_loss)
+                    logger.info('density loss')
+                    logger.info(density_loss)
 
                 # Add PINN loss if specified
                 if use_pinn:
@@ -750,8 +748,8 @@ def train_all(
                     loss2=0
                     loss2=torch.mean((torch.exp(s2*2/sigmaa**2)-density_values)**2)
   
-                    print('pinloss')
-                    print(mean_pppinn_loss+loss2)
+                    logger.info('pinloss')
+                    logger.info(mean_pppinn_loss+loss2)
                     
                     loss += lambda_pinn * mean_pppinn_loss+lambda_initial*loss2
 
@@ -774,8 +772,8 @@ def train_all(
                 if use_pinn:
                     torch.save(sf2m_score_model.state_dict(), os.path.join(exp_dir, 'score_model_result'))
                 torch.save(model.state_dict(), os.path.join(exp_dir, 'model_result'))
-                print(f'New minimum otloss found: {min_ot_loss}. Model saved.')
-            
+                logger.info(f'New minimum otloss found: {min_ot_loss}. Model saved.')
+            pbar.set_postfix({'OT Loss': f'{current_ot_loss:.6f}'})
             # Reverse pass if specified
             if reverse:
                 i_mass_reverse=1
@@ -860,12 +858,9 @@ def train_all(
                     data_t0_reverse=x_t_reverse[-1].detach()
                 
                     # Print reverse loss components
-                    print('Otloss')
-                    print(loss_ot_reverse)
-                    print('mass loss')
-                    print(mass_loss)
-                    print('energy loss')
-                    print(m_t_last_reverse.mean())
+                    logger.info(f'Otloss {loss_ot_reverse.item()}')
+                    logger.info(f'mass loss {mass_loss.item()}')
+                    logger.info(f'energy loss {m_t_last_reverse.mean().item()}')
                     
                     # Combine reverse losses
                     loss_reverse=(lambda_ot*loss_ot_reverse+lambda_mass*mass_loss - lambda_energy * m_t_last_reverse.mean())
@@ -875,8 +870,8 @@ def train_all(
                         density_loss = density_fn(data_t0_reverse, data_t1_reverse, top_k=top_k)
                         density_loss = density_loss.to(loss_reverse.device)
                         loss_reverse += lambda_density * density_loss
-                        print('density loss')
-                        print(density_loss)
+                        logger.info('density loss')
+                        logger.info(density_loss)
 
                     # Apply reverse local loss if specified
                     if apply_losses_in_time and local_loss:
@@ -899,13 +894,11 @@ def train_all(
             ave_local_loss = torch.mean(batch_loss)
             sum_local_loss = torch.sum(batch_loss)            
             batch_losses.append(ave_local_loss.item())
+            
         
                      
     # Print final training loss
     print_loss = globe_losses if global_loss else batch_losses 
-    if logger is None:      
-        tqdm.write(f'Train loss: {np.round(np.mean(print_loss), 5)}')
-    else:
-        logger.info(f'Train loss: {np.round(np.mean(print_loss), 5)}')
+    logger.info(f'Train loss: {np.round(np.mean(print_loss), 5)}')
     return local_losses, batch_losses, globe_losses
 
