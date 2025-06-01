@@ -16,6 +16,62 @@ Results will be presented like this but without interaction (Figure 3 in our [la
 
 If you are interested in further exploring cell-cell interactions from the data, we plan to release the code following the publication of our work.
 
+## Getting Started
+
+1. Clone this repository:
+
+```vim
+git clone https://github.com/zhenyiizhang/DeepRUOTv2
+```
+
+2. You can create a new conda environment (DeepRUOT) using
+
+```vim
+conda create -n DeepRUOT python=3.10 ipykernel -y
+conda activate DeepRUOT
+```
+
+3. Install requirements
+```vim
+cd path_to_DeepRUOT
+pip install -r requirements.txt
+```
+
+## Training DeepRUOT
+
+DeepRUOTv2 uses a flexible configuration system, where users can specify the parameters used to train DeepRUOT. We provide example configurations used to train on four scRNA-seq datasets: Mouse Blood Hematopoiesis (50D), Embryoid Body (50D), Pancreatic $\beta$ -cell differentiation (30D) and  A549 EMT (10D). The configurations are stored in the `config/` folder.
+
+To train DeepRUOT on your own dataset, modify these parts in the confuguration file:
+
+```yaml
+exp:
+  name: "my_experiment"     # Experiment name
+
+data:
+  file_path: "data.csv"     # Path to your dataset, your dataset should be prepared as a csv file
+  dim: 50                   # Data dimension
+
+model:
+  in_out_dim: 50 # Data dimension
+```
+
+
+For training, simply specify the path to your configuration file, and run  `train_RUOT.py`:
+
+```bash
+python train_RUOT.py --config config/<config_name>.yaml
+```
+
+For example, to reproduce our results on the Mouse Blood Hematopoiesis dataset, run:
+
+```bash
+python train_RUOT.py --config config/weinreb_config.yaml
+```
+
+## Evaluation
+
+We provide a Jupyter notebook to plot the learned results in `evaluation/plot.ipynb`.
+
 ## License
 DeepRUOTv2 is licensed under the MIT License, and the code from MIOflow used in this project is subject to the Yale Non-Commercial License.
 
