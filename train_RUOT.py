@@ -104,13 +104,12 @@ class TrainingPipeline:
         """Phase 1: Pretrain"""
         self.logger.info('Pretraining growth net')
         optimizer = torch.optim.Adam(self.f_net.parameters(), self.config['pretrain']['lr'])
-        criterion = OT_loss1(which='emd')
+        criterion = OT_loss1(which='emd', device=self.device)
         sample_size = (self.config['sample_size'],)
         
         l_loss, b_loss, g_loss = train_un1_reduce(
             self.f_net, self.df, self.groups, optimizer, self.config['pretrain']['epochs'],
             criterion=criterion,
-            use_cuda=self.config['cuda'],
             local_loss=True,
             global_loss=False,
             apply_losses_in_time=self.config['apply_losses_in_time'],
@@ -139,13 +138,12 @@ class TrainingPipeline:
         for param in self.f_net.g_net.parameters():
             param.requires_grad = False
         optimizer = torch.optim.Adam(self.f_net.parameters(), 1e-5)
-        criterion = OT_loss1(which='emd')
+        criterion = OT_loss1(which='emd', device=self.device)
         sample_size = (self.config['sample_size'],)
         
         l_loss, b_loss, g_loss = train_un1_reduce(
             self.f_net, self.df, self.groups, optimizer, self.config['pretrain']['epochs']//5,
             criterion=criterion,
-            use_cuda=self.config['cuda'],
             local_loss=True,
             global_loss=False,
             apply_losses_in_time=self.config['apply_losses_in_time'],
@@ -257,13 +255,12 @@ class TrainingPipeline:
             for param in self.sf2m_score_model.parameters():
                 param.requires_grad = False
         
-        criterion = OT_loss1(which='emd')
+        criterion = OT_loss1(which='emd', device=self.device)
         sample_size = (self.config['sample_size'],)
         
         l_loss, b_loss, g_loss = train_all(
             self.f_net, self.df, self.groups, optimizer, self.config['train']['epochs'],
             criterion=criterion,
-            use_cuda=self.config['cuda'],
             local_loss=True,
             global_loss=False,
             apply_losses_in_time=self.config['apply_losses_in_time'],

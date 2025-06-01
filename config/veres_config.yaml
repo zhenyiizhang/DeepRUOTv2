@@ -1,5 +1,4 @@
 # Runtime parameters
-cuda: true # whether to use GPU
 use_pinn: false # whether to use PINN to refine the score network, if set to false, keep the score network from the pretraining phase unchanged
 sample_with_replacement: false # Whether or not to sample with replacement.
 device: 'cuda' # device to run the model

@@ -23,7 +23,6 @@ import matplotlib.pyplot as plt
 def train_un1(
     model, df, groups, optimizer, n_batches=20, 
     criterion=MMD_loss(),
-    use_cuda=False,
 
     sample_size=(100, ),
     sample_with_replacement=False,
@@ -83,9 +82,6 @@ def train_un1(
         
     density_fn = Density_loss(hinge_value) # if not use_local_density else Local_density_loss()
 
-    # Send model to cuda and specify it as training mode
-    if use_cuda:
-        model = model.cuda()
     
     model.train()
     model.to(device)
@@ -99,7 +95,7 @@ def train_un1(
         if local_loss and not global_loss:
             i_mass=1
             lnw0 = torch.log(torch.ones(sample_size[0],1) / (initial_size)).to(device)
-            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
             data_t0.to(device)
             # for storing the local loss with calling `.item()` so `loss.backward()` can still be used
 
@@ -115,9 +111,9 @@ def train_un1(
                 #sampling, predicting, and evaluating the loss.
                 # sample data
                 size1=(df[df['samples']==t1].values.shape[0],)
-                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                 data_t1.to(device)
-                time = torch.Tensor([t0, t1]).cuda() if use_cuda else torch.Tensor([t0, t1])
+                time = torch.Tensor([t0, t1])
                 time.to(device)
                 if add_noise:
                     data_t0 += noise(data_t0) * noise_scale
@@ -189,8 +185,7 @@ def train_un1(
         
             # convert the local losses into a tensor of len(steps)
             batch_loss = torch.Tensor(batch_loss).float()
-            if use_cuda:
-                batch_loss = batch_loss.cuda()
+            batch_loss = batch_loss.to(device)
             
             if not apply_losses_in_time:
                 batch_loss.backward()
@@ -213,7 +208,6 @@ def train_un1(
 def train_un1_reduce(
     model, df, groups, optimizer, n_batches=20, 
     criterion=MMD_loss(),
-    use_cuda=False,
 
     sample_size=(100, ),
     sample_with_replacement=False,
@@ -277,10 +271,6 @@ def train_un1_reduce(
         local_losses = {f'{t0}:{t1}':[] for (t0, t1) in steps}
         
     density_fn = Density_loss(hinge_value) # if not use_local_density else Local_density_loss()
-
-    # Send model to cuda and specify it as training mode
-    if use_cuda:
-        model = model.cuda()
     
     model.train()
     model.to(device)
@@ -297,7 +287,7 @@ def train_un1_reduce(
         if local_loss and not global_loss:
             i_mass=1
             lnw0 = torch.log(torch.ones(sample_size[0],1) / (sample_size[0])).to(device)
-            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
             data_t0.to(device)
             # for storing the local loss with calling `.item()` so `loss.backward()` can still be used
 
@@ -311,9 +301,9 @@ def train_un1_reduce(
                 optimizer.zero_grad()
                 data_t0.to(device)
                 size1=(df[df['samples']==t1].values.shape[0],)
-                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                 data_t1.to(device)
-                time = torch.Tensor([t0, t1]).cuda() if use_cuda else torch.Tensor([t0, t1])
+                time = torch.Tensor([t0, t1])
                 time.to(device)
                 if add_noise:
                     data_t0 += noise(data_t0) * noise_scale
@@ -399,7 +389,7 @@ def train_un1_reduce(
             if reverse:
                 i_mass_reverse=1
                 lnw0_reverse = torch.log(torch.ones(sample_size[0],1) / (sample_size[0])).to(device)
-                data_t0_reverse = sample(df, steps_reverse[0][0], size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                data_t0_reverse = sample(df, steps_reverse[0][0], size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                 data_t0_reverse.to(device)
 
                 batch_loss = []
@@ -412,9 +402,9 @@ def train_un1_reduce(
                     optimizer.zero_grad()
                     data_t0_reverse.to(device)
                     size1=(df[df['samples']==t1].values.shape[0],)
-                    data_t1_reverse = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                    data_t1_reverse = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                     data_t1_reverse.to(device)
-                    time = torch.Tensor([t0, t1]).cuda() if use_cuda else torch.Tensor([t0, t1])
+                    time = torch.Tensor([t0, t1])
                     time.to(device)
                     if add_noise:
                         data_t0_reverse += noise(data_t0_reverse) * noise_scale
@@ -480,8 +470,7 @@ def train_un1_reduce(
                         optimizer.step()
                         model.norm=[]
             batch_loss = torch.Tensor(batch_loss).float()
-            if use_cuda:
-                batch_loss = batch_loss.cuda()
+            batch_loss = batch_loss.to(device)
             
             if not apply_losses_in_time:
                 loss_batch.backward()
@@ -509,7 +498,6 @@ import torch, torch.nn as nn
 def train_all(
     model, df, groups, optimizer, n_batches=20, 
     criterion=MMD_loss(),
-    use_cuda=False,
 
     sample_size=(100, ),
     sample_with_replacement=False,
@@ -566,7 +554,7 @@ def train_all(
     # Set up noise function based on distribution type
     noise_fn = torch.randn if use_gaussian else torch.rand
     def noise(data):
-        return noise_fn(*data.shape).cuda() if use_cuda else noise_fn(*data.shape)
+        return noise_fn(*data.shape).to(device)
         
     # Generate time steps for forward pass
     steps = generate_steps(groups)
@@ -590,10 +578,6 @@ def train_all(
         local_losses = {f'{t0}:{t1}':[] for (t0, t1) in steps}
         
     density_fn = Density_loss(hinge_value)
-
-    # Move model to GPU if using CUDA
-    if use_cuda:
-        model = model.cuda()
     
     model.train()
     step=0
@@ -608,7 +592,7 @@ def train_all(
         if local_loss and not global_loss:
             # Sample initial data points
             size0=(df[df['samples']==0].values.shape[0],)
-            data_0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+            data_0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
             P0=0
             num=data_0.shape[0]
             time=torch.tensor([0.0]).to(device)
@@ -624,7 +608,7 @@ def train_all(
             i_mass=1
             lnw0 = torch.log(torch.ones(sample_size[0],1) / (sample_size[0])).to(device)  # Log normalized weights
             m0 = (torch.zeros(sample_size[0],1) / (initial_size)).to(device)  
-            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+            data_t0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
 
             batch_loss = []
             if hold_one_out:
@@ -639,8 +623,8 @@ def train_all(
 
                 # Sample target data
                 size1=(df[df['samples']==t1].values.shape[0],)
-                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
-                time = torch.Tensor([t0, t1]).cuda() if use_cuda else torch.Tensor([t0, t1])
+                data_t1 = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
+                time = torch.Tensor([t0, t1])
 
                 # Add noise if specified
                 if add_noise:
@@ -753,7 +737,7 @@ def train_all(
 
                     # Calculate initial density loss
                     size0=(df[df['samples']==0].values.shape[0],)
-                    data_0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                    data_0 = sample(df, 0, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                     P0=0
                     num=data_0.shape[0]
                     time=torch.tensor([0.0]).to(device)
@@ -796,7 +780,7 @@ def train_all(
             if reverse:
                 i_mass_reverse=1
                 lnw0_reverse = torch.log(torch.ones(sample_size[0],1) / (sample_size[0])).to(device)
-                data_t0_reverse = sample(df, steps_reverse[0][0], size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                data_t0_reverse = sample(df, steps_reverse[0][0], size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                 data_t0_reverse.to(device)
 
                 batch_loss = []
@@ -812,9 +796,9 @@ def train_all(
                     
                     data_t0_reverse.to(device)
                     size1=(df[df['samples']==t1].values.shape[0],)
-                    data_t1_reverse = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, use_cuda=use_cuda)
+                    data_t1_reverse = sample(df, t1, size=sample_size, replace=sample_with_replacement, to_torch=True, device = device)
                     data_t1_reverse.to(device)
-                    time = torch.Tensor([t0, t1]).cuda() if use_cuda else torch.Tensor([t0, t1])
+                    time = torch.Tensor([t0, t1])
                     time.to(device)
                     
                     # Add noise if specified
@@ -902,8 +886,7 @@ def train_all(
         
             # Convert batch losses to tensor
             batch_loss = torch.Tensor(batch_loss).float()
-            if use_cuda:
-                batch_loss = batch_loss.cuda()
+            batch_loss = batch_loss.to(device)
             
             # Apply accumulated loss if not applying losses in time
             if not apply_losses_in_time:

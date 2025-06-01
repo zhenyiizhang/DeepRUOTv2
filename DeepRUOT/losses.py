@@ -51,24 +51,22 @@ import numpy as np
 class OT_loss1(nn.Module):
     _valid = 'emd sinkhorn sinkhorn_knopp_unbalanced'.split()
 
-    def __init__(self, which='emd', use_cuda=True):
+    def __init__(self, which='emd', device=None):
         if which not in self._valid:
             raise ValueError(f'{which} not known ({self._valid})')
         self.which = which
-        self.use_cuda = use_cuda
+        self.device = device
 
-    def __call__(self, source, target, mu, nu, sigma=None, use_cuda=None):
-        if use_cuda is None:
-            use_cuda = self.use_cuda
+    def __call__(self, source, target, mu, nu, sigma=None):
         if not isinstance(mu, torch.Tensor):
             mu = torch.tensor(mu, dtype=torch.float32)
         if not isinstance(nu, torch.Tensor):
             nu = torch.tensor(nu, dtype=torch.float32)
         
-        if use_cuda:
+        if self.device:
             #mu = mu.cuda()
-            mu = mu.to('cuda')
-            nu = nu.to('cuda')
+            mu = mu.to(self.device)
+            nu = nu.to(self.device)
 
         M = torch.cdist(source, target)**2
 
@@ -93,7 +91,7 @@ class OT_loss1(nn.Module):
             pi = pi.clone().detach()
         
         #pi = pi.cuda() if use_cuda else pi
-        pi = pi.to('cuda') if use_cuda else pi
+        pi = pi.to(self.device)
         M = M.to(pi.device)
         loss = torch.sum(pi * M)
         return loss

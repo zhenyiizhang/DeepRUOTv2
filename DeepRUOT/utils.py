@@ -54,16 +54,14 @@ def load_and_merge_config(config_path=None):
 def group_extract(df, group, index='samples', groupby='samples'):
     return df.groupby(groupby).get_group(group).set_index(index).values
 
-def sample(data, group, size=(100, ), replace=False, to_torch=False, use_cuda=False, use_mps=False):
+def sample(data, group, size=(100, ), replace=False, to_torch=False, device=None):
     sub = group_extract(data, group)
     idx = np.arange(sub.shape[0])
     sampled = sub[np.random.choice(idx, size=size, replace=replace)]
     if to_torch:
         sampled = torch.Tensor(sampled).float()
-        if use_cuda:
-            sampled = sampled.cuda()
-        if use_mps:
-            sampled = sampled.mps()
+        if device is not None:
+            sampled = sampled.to(device)
     return sampled
 
 def to_np(data):
