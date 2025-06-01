@@ -204,9 +204,18 @@ class TrainingPipeline:
         # Training loop
         for i in tqdm(range(self.config['score_train']['epochs']), desc='Training score model'):
             sf2m_optimizer.zero_grad()
-            t, xt, ut, eps = get_batch_size(SF2M, X, trajectory, batch_size, n_times, return_noise=True)
+            t, xt, ut, eps = get_batch_size(SF2M, X, trajectory, batch_size, time, return_noise=True)
             t = torch.unsqueeze(t, 1)
-            lambda_t = SF2M.compute_lambda(t % 1)
+            t_floor = torch.zeros_like(t)
+            t_ceil = torch.zeros_like(t)
+            
+            for i in range(len(time)-1):
+                mask = (t >= time[i]) & (t < time[i+1])
+                t_floor[mask] = time[i]
+                t_ceil[mask] = time[i+1]
+            
+            
+            lambda_t = SF2M.compute_lambda((t - t_floor) / (t_ceil - t_floor))
             value_st = self.sf2m_score_model(t, xt)
             st = self.sf2m_score_model.compute_gradient(t, xt)
             positive_st = torch.relu(value_st)

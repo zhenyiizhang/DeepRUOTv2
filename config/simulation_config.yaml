@@ -29,7 +29,7 @@ pretrain:
   lambda_energy: 0.0 # weight for energy loss
 
 score_train:
-  epochs: 1001 # number of epochs for score matching
+  epochs: 3001 # number of epochs for score matching
   lr: 0.0001 # learning rate for score matching
   lambda_penalty: 1 # weight for penalty
   sigma: 0.05 # strength of noise

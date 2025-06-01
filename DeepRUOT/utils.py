@@ -905,7 +905,7 @@ def density1(x,datatime0,device):
     p_n = p_unn / num_gaussian
     return p_n
 
-def get_batch_size(FM, X, trajectory, batch_size, n_times, return_noise=False, hold_one_out=False, hold_out=None):
+def get_batch_size(FM, X, trajectory, batch_size, time, return_noise=False, hold_one_out=False, hold_out=None):
     ts = []
     xts = []
     uts = []
@@ -916,12 +916,12 @@ def get_batch_size(FM, X, trajectory, batch_size, n_times, return_noise=False, h
         if hold_out == 'random':
             raise ValueError("hold_out='random' is not supported, please specify a concrete time step index.")
         # Remove the specified time step from trajectory
-        trajectory = [data for idx, data in enumerate(trajectory) if idx != hold_out]
+        trajectory = [data for idx, data in enumerate(trajectory) if time[idx] != hold_out]
         n_times = len(trajectory)
 
-    for t_start in range(n_times - 1):
-        x0 = trajectory[t_start]
-        x1 = trajectory[t_start + 1]
+    for idx, t_start in enumerate(time[:-1]):
+        x0 = trajectory[idx]
+        x1 = trajectory[idx + 1]
         indices0 = np.random.choice(len(x0), size=batch_size, replace=False)
         indices1 = np.random.choice(len(x1), size=batch_size, replace=False)
         
@@ -936,9 +936,9 @@ def get_batch_size(FM, X, trajectory, batch_size, n_times, return_noise=False, h
             t, xt, ut = FM.sample_location_and_conditional_flow(x0, x1, return_noise=return_noise)
         
         # Offset t values by t_start to maintain correct time correspondence
-        ts.append(t + t_start)
+        ts.append(t * (time[idx+1] - time[idx]) + t_start)
         xts.append(xt)
-        uts.append(ut)
+        uts.append(ut/(time[idx+1] - time[idx]))
 
     t = torch.cat(ts)
     xt = torch.cat(xts)
