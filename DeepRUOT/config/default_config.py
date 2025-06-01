@@ -59,7 +59,7 @@ CONFIG_SPEC = {
     "device": ConfigParam(
         default="cuda",
         type=str,
-        choices=["cuda", "cpu"],
+        choices=["cuda", "cpu", 'mps'],
         help="Device to use for training"
     ),
     "sample_size": ConfigParam(

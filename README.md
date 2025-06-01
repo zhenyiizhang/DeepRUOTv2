@@ -27,8 +27,8 @@ git clone https://github.com/zhenyiizhang/DeepRUOTv2
 2. You can create a new conda environment (DeepRUOT) using
 
 ```vim
-conda create -n DeepRUOT python=3.10 ipykernel -y
-conda activate DeepRUOT
+conda create -n DeepRUOTv2 python=3.10 ipykernel -y
+conda activate DeepRUOTv2
 ```
 
 3. Install requirements
@@ -55,6 +55,7 @@ model:
   in_out_dim: 50 # Data dimension
 ```
 
+For other hyperparameters, we recommend using the same settings as `config/weinreb_config.yaml`.
 
 For training, simply specify the path to your configuration file, and run  `train_RUOT.py`:
 
