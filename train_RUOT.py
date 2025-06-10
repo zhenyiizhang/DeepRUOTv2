@@ -189,7 +189,7 @@ class TrainingPipeline:
         X = [adata.obsm["X_pca"][adata.obs["samples"] == t] for t in range(n_times)]
         
         # Setup training
-        batch_size = self.config['sample_size']
+        batch_size = self.config['score_train']['score_batch_size']
         sigma = self.config['score_train']['sigma']
         time = torch.Tensor(self.groups)
         SF2M = SchrodingerBridgeConditionalFlowMatcher(sigma=sigma)

@@ -846,7 +846,7 @@ def generate_state_trajectory(X, n_times, batch_size,f_net,time, device):
         t_mid = torch.Tensor([time[t_start], time[t_start+1]]).float().to(device)
         m0 = torch.zeros_like(lnw0).to(device)
         initial_state_energy = (trajectory[-1], lnw0, m0)
-        xtt, _, _=odeint(ODEFunc2(f_net),initial_state_energy,t_mid,options=dict(step_size=0.01),method='euler')
+        xtt, _, _=odeint(ODEFunc2(f_net),initial_state_energy,t_mid,options=dict(step_size=0.1),method='euler')
         trajectory.append(xtt[-1].detach())
     return trajectory
 

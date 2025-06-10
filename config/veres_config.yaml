@@ -33,6 +33,7 @@ score_train:
   lr: 0.0001 # learning rate for score matching
   lambda_penalty: 1 # weight for penalty
   sigma: 0.1 # strength of noise
+  score_batch_size: 512 # batch size for score training
 
 train:
   epochs: 500 # number of epochs for final training

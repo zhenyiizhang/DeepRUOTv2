@@ -247,6 +247,11 @@ CONFIG_SPEC = {
             default=0.1,
             type=float,
             help="Sigma parameter for score training"
+        ),
+        'score_batch_size': ConfigParam(
+            default=512,
+            type=int,
+            help="Batch size for score training"
         )
     },
 
