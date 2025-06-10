@@ -131,15 +131,12 @@ class TrainingPipeline:
             sample_with_replacement=self.config['sample_with_replacement'],
             device=self.device,
             best_model_path=os.path.join(self.exp_dir, 'best_model'),
-            logger=self.logger
+            logger=self.logger,
         )
 
-        self.logger.info('Refining velocity')
+        self.logger.info('Refining networks')
         self.f_net.load_state_dict(torch.load(os.path.join(self.exp_dir, 'best_model'), map_location=self.device))
-        for param in self.f_net.g_net.parameters():
-            param.requires_grad = False
         optimizer = torch.optim.Adam(self.f_net.parameters(), 1e-5)
-        criterion = OT_loss1(which='emd', device=self.device)
         sample_size = (self.config['sample_size'],)
         
         l_loss, b_loss, g_loss = train_un1_reduce(
@@ -152,7 +149,7 @@ class TrainingPipeline:
             hold_out=self.config['data']['hold_out'],
             hinge_value=self.config['hinge_value'],
             lambda_ot=1,
-            lambda_mass=0,
+            lambda_mass=0.01,
             lambda_energy=0,
             use_pinn=False,
             use_penalty=False,
@@ -165,7 +162,9 @@ class TrainingPipeline:
             sample_with_replacement=self.config['sample_with_replacement'],
             device=self.device,
             best_model_path=os.path.join(self.exp_dir, 'best_model'),
-            logger=self.logger
+            logger=self.logger,
+            mass_detach=False,
+            global_mass=True,
         )
         
         return l_loss, b_loss, g_loss

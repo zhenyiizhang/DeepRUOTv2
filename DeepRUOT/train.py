@@ -249,6 +249,7 @@ def train_un1_reduce(
     pca_transform=None,
     use_mass = True,
     global_mass = False,
+    mass_detach = True,
 ):
 
     # Create the indicies for the steps that should be used
@@ -328,7 +329,7 @@ def train_un1_reduce(
                 data_t0.requires_grad=True
                 lnw0.requires_grad=True
                 
-                x_t, lnw_t, m_t=odeint(ODEFunc2(model, use_mass = use_mass),initial_state_energy, t, atol=1e-5, rtol=1e-5, method='euler', options=dict(step_size=0.1))
+                x_t, lnw_t, m_t=odeint2(ODEFunc2(model, use_mass = use_mass),initial_state_energy, t, atol=1e-5, rtol=1e-5, method='euler', options=dict(step_size=0.1))
                 lnw_t_last = lnw_t[-1]
                 m_t_last = m_t[-1]
                 if use_mass:
@@ -340,9 +341,17 @@ def train_un1_reduce(
                 nu = nu / nu.sum()
                 mu = mu.squeeze(1)
                 nu=nu.squeeze(1)
-                loss_ot = criterion(x_t[-1], data_t1, mu, nu)
+                if mass_detach:
+                    loss_ot = criterion(x_t[-1], data_t1, mu, nu)
+                else:
+                    loss_fn = SamplesLoss("sinkhorn", p=2, blur=0.1)
+                    mu = mu.to(device)
+                    nu = nu.to(device)
+                    x_t[-1] = x_t[-1].to(device)
+                    data_t1 = data_t1.to(device)
+                    loss_ot = loss_fn(mu, x_t[-1],nu, data_t1)
                 i_mass=i_mass+1
-                global_mass_loss = torch.abs(torch.sum(torch.exp(lnw_t_last)) - relative_mass_now)/relative_mass_now #torch.norm(torch.sum(torch.exp(lnw_t_last)) - relative_mass_now, p=2)**2
+                global_mass_loss = torch.norm(torch.sum(torch.exp(lnw_t_last)) - relative_mass_now, p=2)**2
                 local_mass_loss = cal_mass_loss_reduce(data_t1, x_t[-1], lnw_t_last, relative_mass_now, sample_size[0],dim_reducer=pca_transform)
                 if global_mass:
                     mass_loss = global_mass_loss + local_mass_loss
@@ -762,9 +771,6 @@ def train_all(
                     if scheduler != None:
                         scheduler.step()
                     model.norm=[]
-                    
-                # Store losses
-                local_losses[f'{t0}:{t1}'].append(loss.item())
                 batch_loss.append(loss)
             
             # Check for new best model
