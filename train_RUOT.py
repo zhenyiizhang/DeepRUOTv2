@@ -209,10 +209,10 @@ class TrainingPipeline:
             t_floor = torch.zeros_like(t)
             t_ceil = torch.zeros_like(t)
             
-            for i in range(len(time)-1):
-                mask = (t >= time[i]) & (t < time[i+1])
-                t_floor[mask] = time[i]
-                t_ceil[mask] = time[i+1]
+            for j in range(len(time)-1):
+                mask = (t >= time[j]) & (t < time[j+1])
+                t_floor[mask] = time[j]
+                t_ceil[mask] = time[j+1]
             
             
             lambda_t = SF2M.compute_lambda((t - t_floor) / (t_ceil - t_floor))
