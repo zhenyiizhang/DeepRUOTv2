@@ -41,7 +41,7 @@ pip install -r requirements.txt
 
 DeepRUOTv2 uses a flexible configuration system, where users can specify the parameters used to train DeepRUOT. We provide example configurations used to train on four scRNA-seq datasets: Mouse Blood Hematopoiesis (50D), Embryoid Body (50D), Pancreatic $\beta$ -cell differentiation (30D) and  A549 EMT (10D). The configurations are stored in the `config/` folder.
 
-To train DeepRUOTv2 on your own dataset, you need to convert your own dataset to a csv file. Specifically, the column `samples` refers to the biological time points starting from time 0, and it is recommended to have time intervals of 1 between consecutive time points. The following columns, starting from `x1`, refer to the gene expression features. After the dataset is prepared, modify these parts in the confuguration file:
+To train DeepRUOTv2 on your own dataset, you need to convert your own dataset to a csv file and store it in the `data/` folder. Specifically, the column `samples` refers to the biological time points starting from time 0, and it is recommended to have time intervals of 1 between consecutive time points. The following columns, starting from `x1`, refer to the gene expression features. After the dataset is prepared, modify these parts in the confuguration file:
 
 ```yaml
 device: 'cuda' # device to run the model
