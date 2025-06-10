@@ -202,6 +202,9 @@ class TrainingPipeline:
         trajectory = generate_state_trajectory(X, n_times, self.df[self.df['samples']==0].x1.shape[0], self.f_net, time, self.device)
         
         # Training loop
+        best_score_loss = float('inf')
+        best_state_dict = None
+        
         for i in tqdm(range(self.config['score_train']['epochs']), desc='Training score model'):
             sf2m_optimizer.zero_grad()
             t, xt, ut, eps = get_batch_size(SF2M, X, trajectory, batch_size, time, return_noise=True)
@@ -214,7 +217,6 @@ class TrainingPipeline:
                 t_floor[mask] = time[j]
                 t_ceil[mask] = time[j+1]
             
-            
             lambda_t = SF2M.compute_lambda((t - t_floor) / (t_ceil - t_floor))
             value_st = self.sf2m_score_model(t, xt)
             st = self.sf2m_score_model.compute_gradient(t, xt)
@@ -222,6 +224,16 @@ class TrainingPipeline:
             penalty = self.config['score_train']['lambda_penalty'] * torch.max(positive_st)
             
             score_loss = torch.mean((lambda_t[:, None] * st + eps) ** 2)
+            
+            # Check for NaN loss
+            if torch.isnan(score_loss):
+                self.logger.info("Training stopped due to NaN loss")
+                break
+                
+            if score_loss < best_score_loss:
+                best_score_loss = score_loss
+                best_state_dict = self.sf2m_score_model.state_dict().copy()
+            
             if i % 100 == 0:
                 self.logger.info(f"Max positive_st: {torch.max(positive_st)}")
                 self.logger.info(f"Iteration {i}: score_loss = {score_loss.item():0.2f}")
@@ -230,7 +242,9 @@ class TrainingPipeline:
             loss.backward()
             sf2m_optimizer.step()
         
-        torch.save(self.sf2m_score_model.state_dict(), os.path.join(self.exp_dir, 'score_model'))
+        # Save the best model
+        if best_state_dict is not None:
+            torch.save(best_state_dict, os.path.join(self.exp_dir, 'score_model'))
 
     def final_training(self):
         """Phase 3: Final training phase"""
