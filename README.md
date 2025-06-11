@@ -75,6 +75,13 @@ python train_RUOT.py --config config/weinreb_config.yaml
 
  After training, model checkpoints will be generated in the `results/` directory: `model_final` and `score_final`, which can then be used to inference trajectories. We provide a Jupyter notebook to plot the learned results in `evaluation/plot.ipynb`.
 
+## Contact information
+
+If you encounter any issues while running the code, please feel free to contact us:
+
+Zhenyi Zhang (zhenyizhang@stu.pku.edu.cn)
+
+
 ## License
 DeepRUOTv2 is licensed under the MIT License, and the code from MIOflow used in this project is subject to the Yale Non-Commercial License.
 
