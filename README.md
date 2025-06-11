@@ -79,7 +79,7 @@ python train_RUOT.py --config config/weinreb_config.yaml
 
 If you encounter any issues while running the code, please feel free to contact us and we warmly welcome any discussions and suggestions:
 
-Zhenyi Zhang (zhenyizhang@stu.pku.edu.cn)
+Zhenyi Zhang (zhenyizhang@stu.pku.edu.cn / zhenyizhang.math@gmail.com)
 
 
 
