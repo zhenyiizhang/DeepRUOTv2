@@ -77,9 +77,12 @@ python train_RUOT.py --config config/weinreb_config.yaml
 
 ## Contact information
 
-If you encounter any issues while running the code, please feel free to contact us:
+If you encounter any issues while running the code, please feel free to contact us and we warmly welcome any discussions and suggestions:
 
 Zhenyi Zhang (zhenyizhang@stu.pku.edu.cn)
+
+
+
 
 
 ## License
